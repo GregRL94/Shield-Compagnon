@@ -9,6 +9,7 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Mm]emoryCaptures/
+/[Uu]serSettings/
 
 
 # Never ignore Asset meta data
@@ -80,3 +81,5 @@ crashlytics-build.properties
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+UserSettings/Layouts/default-6000.dwlt
