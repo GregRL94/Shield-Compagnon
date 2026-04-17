@@ -6,7 +6,7 @@ public class PlayerInputHandler : MonoBehaviour
     #region Events
     public static Action Interact;
     public static Action<bool> Jump;
-    public static Action Dash;
+    public static Action<bool> Dash;
     public static Action<bool> isPressedCrouch;
     public static Action<bool> isPressedSprint;
     #endregion Events
@@ -42,6 +42,26 @@ public class PlayerInputHandler : MonoBehaviour
     {
         return _inputActions.Player.Look.ReadValue<Vector2>();
     }
+
+    public bool CrouchPressed()
+    {
+        return _inputActions.Player.Crouch.IsPressed();
+    }
+
+    public bool SprintPressed()
+    {
+        return _inputActions.Player.Sprint.IsPressed();
+    }
+
+    public bool JumpPressed()
+    {
+        return _inputActions.Player.Jump.WasPressedThisFrame();
+    }
+
+    public bool DashPressed()
+    {
+        return _inputActions.Player.Dash.WasPressedThisFrame();
+    }
     #endregion Input Getters
 
     #region Subriptions
@@ -67,24 +87,10 @@ public class PlayerInputHandler : MonoBehaviour
         {
             _inputActions.Player.Enable();
             _inputActions.Player.Interact.performed += ctx => Interact?.Invoke(); // On passe le contexte de l'action en lambda
-            _inputActions.Player.Jump.started += ctx => Jump?.Invoke(true);
-            _inputActions.Player.Jump.canceled += ctx => Jump?.Invoke(false);
-            _inputActions.Player.Dash.performed += ctx => Dash?.Invoke();
-            _inputActions.Player.Crouch.started += ctx => isPressedCrouch?.Invoke(true);
-            _inputActions.Player.Crouch.canceled += ctx => isPressedCrouch?.Invoke(false);
-            _inputActions.Player.Sprint.started += ctx => isPressedSprint?.Invoke(true);
-            _inputActions.Player.Sprint.canceled += ctx => isPressedSprint?.Invoke(false);
         }
         else
         {
             _inputActions.Player.Interact.performed -= ctx => Interact?.Invoke();
-            _inputActions.Player.Jump.started -= ctx => Jump?.Invoke(true);
-            _inputActions.Player.Jump.canceled -= ctx => Jump?.Invoke(false);
-            _inputActions.Player.Dash.performed -= ctx => Dash?.Invoke();
-            _inputActions.Player.Crouch.started -= ctx => isPressedCrouch?.Invoke(true);
-            _inputActions.Player.Crouch.canceled -= ctx => isPressedCrouch?.Invoke(false);
-            _inputActions.Player.Sprint.started -= ctx => isPressedSprint?.Invoke(true);
-            _inputActions.Player.Sprint.canceled -= ctx => isPressedSprint?.Invoke(false);
             _inputActions.Player.Disable();
         }        
     }
