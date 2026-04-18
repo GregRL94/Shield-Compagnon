@@ -979,15 +979,17 @@ MonoBehaviour:
   movementSetup:
     <MoveSpeed>k__BackingField: 10
     <RotationSpeed>k__BackingField: 30
+    <AirControl>k__BackingField: 0
     <GroundLayer>k__BackingField:
       serializedVersion: 2
       m_Bits: 8
-    <GroundCheckRadius>k__BackingField: 0.5
+    <GroundCheckRadius>k__BackingField: 0.1
     <GroundCheckDistance>k__BackingField: 1
     <CrouchSpeedMultiplier>k__BackingField: 0.25
     <SprintSpeedMultiplier>k__BackingField: 1.5
   jumpSetup:
-    <JumpHeight>k__BackingField: 30
+    <JumpHeight>k__BackingField: 1.5
+    <JumpTime>k__BackingField: 0.75
     <CanAirJump>k__BackingField: 0
     <MaxAirJumps>k__BackingField: 0
   dashSetup:
