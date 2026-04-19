@@ -69,10 +69,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShield
   velocity: {x: 3, y: 3, z: 0}
   speed: 5
-  bounceableLayers:
+  _bounceableLayers:
     serializedVersion: 2
-    m_Bits: 0
-  raycastDistance: 0.1
+    m_Bits: 1
+  _nbOfRays: 16
 --- !u!1 &8103962876760659046
 GameObject:
   m_ObjectHideFlags: 0
