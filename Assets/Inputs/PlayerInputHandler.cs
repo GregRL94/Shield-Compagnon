@@ -4,6 +4,7 @@ using UnityEngine;
 public class PlayerInputHandler : MonoBehaviour
 {
     #region Events
+    public static Action Attack;
     public static Action Interact;
     public static Action<bool> Jump;
     public static Action<bool> Dash;
@@ -86,10 +87,12 @@ public class PlayerInputHandler : MonoBehaviour
         if (isSubscribed)
         {
             _inputActions.Player.Enable();
+            _inputActions.Player.Attack.performed += ctx => Attack?.Invoke();
             _inputActions.Player.Interact.performed += ctx => Interact?.Invoke(); // On passe le contexte de l'action en lambda
         }
         else
         {
+            _inputActions.Player.Attack.performed -= ctx => Attack?.Invoke();
             _inputActions.Player.Interact.performed -= ctx => Interact?.Invoke();
             _inputActions.Player.Disable();
         }        
