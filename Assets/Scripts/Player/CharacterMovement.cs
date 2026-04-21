@@ -179,8 +179,6 @@ public class CharacterMovement : MonoBehaviour
         {
             _isJumping = true;
             _movement.y = _initialJumpSpeed;
-            Debug.Log("Jump");
-            Debug.Log("Y right after jumping: " + _movement.y);
         }
         else if (_isJumping && !_playerInputHandler.JumpPressed() && _isGrounded)
         {
@@ -211,7 +209,6 @@ public class CharacterMovement : MonoBehaviour
             float newY = _movement.y + _gravity * Time.deltaTime;
             float nextY = (previousY + newY) * 0.5f;
             _movement.y = nextY;
-            Debug.Log("Y after gravity: " + _movement.y);
         }
         else if (!_isJumping)
         {

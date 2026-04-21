@@ -67,12 +67,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a114316b88ad2484bb34e5b471576730, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShield
-  velocity: {x: 3, y: 3, z: 0}
+  velocity: {x: 1, y: 0, z: 3}
   speed: 5
   _bounceableLayers:
     serializedVersion: 2
-    m_Bits: 1
-  _nbOfRays: 16
+    m_Bits: 512
+  _stickableLayers:
+    serializedVersion: 2
+    m_Bits: 1024
+  _nbOfRays: 8
+  _minRayAlignement: 0.25
+  _noColAfterBounceDuration: 0.15
+  _stickDepth: 0.2
 --- !u!1 &8103962876760659046
 GameObject:
   m_ObjectHideFlags: 0
