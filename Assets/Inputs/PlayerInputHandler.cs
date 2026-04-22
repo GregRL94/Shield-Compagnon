@@ -88,7 +88,7 @@ public class PlayerInputHandler : MonoBehaviour
         {
             _inputActions.Player.Enable();
             _inputActions.Player.Attack.performed += ctx => Attack?.Invoke();
-            _inputActions.Player.Interact.performed += ctx => Interact?.Invoke(); // On passe le contexte de l'action en lambda
+            _inputActions.Player.Interact.performed += ctx => Interact?.Invoke();
         }
         else
         {
