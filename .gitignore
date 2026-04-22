@@ -81,3 +81,5 @@ crashlytics-build.properties
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+UserSettings/Layouts/

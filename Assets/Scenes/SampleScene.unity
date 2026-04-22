@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 66766614}
   - component: {fileID: 66766613}
   - component: {fileID: 66766612}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Cube (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -816,6 +816,7 @@ GameObject:
   - component: {fileID: 947340008}
   - component: {fileID: 947340007}
   - component: {fileID: 947340009}
+  - component: {fileID: 947340010}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1002,6 +1003,19 @@ MonoBehaviour:
     <CanAirDash>k__BackingField: 0
   TPCam: {fileID: 1470430977}
   _camMaxXAngle: 20
+--- !u!114 &947340010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 947340002}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac21388064c91fd4cb85d373b92352ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterActions
+  _playerShield: {fileID: 1509219805}
 --- !u!1 &1196845268
 GameObject:
   m_ObjectHideFlags: 0
@@ -1146,6 +1160,38 @@ Transform:
   - {fileID: 1942189828}
   m_Father: {fileID: 947340006}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1509219805 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3491280638952960321, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
+  m_PrefabInstance: {fileID: 4705858327187027409}
+  m_PrefabAsset: {fileID: 0}
+--- !u!54 &1509219809
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1509219805}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1769283202
 GameObject:
   m_ObjectHideFlags: 0
@@ -1397,7 +1443,7 @@ GameObject:
   - component: {fileID: 1947961354}
   - component: {fileID: 1947961353}
   - component: {fileID: 1947961352}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Cube (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1739,6 +1785,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3326509778030940362, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3326509778030940362, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 8e41b5e9c5555194d9fad1c0c7f939a5, type: 2}
@@ -1746,17 +1796,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerShield
       objectReference: {fileID: 0}
-    - target: {fileID: 4642316942644055288, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
-      propertyPath: velocity.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4642316942644055288, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
-      propertyPath: velocity.y
+    - target: {fileID: 3491280638952960321, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
+      propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4642316942644055288, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
-      propertyPath: velocity.z
-      value: 3
+    - target: {fileID: 3491280638952960321, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
+      propertyPath: m_TagString
+      value: PlayerShield
       objectReference: {fileID: 0}
     - target: {fileID: 4642316942644055288, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
       propertyPath: bounceableLayers.m_Bits
@@ -1805,7 +1851,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3491280638952960321, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
+      insertIndex: 1
+      addedObject: {fileID: 1509219809}
   m_SourcePrefab: {fileID: 100100000, guid: c1be3468ca3920c4c8d41aa222118561, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
