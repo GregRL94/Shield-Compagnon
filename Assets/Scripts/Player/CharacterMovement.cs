@@ -114,7 +114,7 @@ public class CharacterMovement : MonoBehaviour
 
     void CheckCeiling()
     {
-        _ceilingFree = Physics.SphereCast(transform.position, movementSetup.CeilingCheckRadius, Vector3.up, out RaycastHit hit, movementSetup.CeilingCheckDistance);
+        _ceilingFree = !Physics.SphereCast(transform.position, movementSetup.CeilingCheckRadius, Vector3.up, out RaycastHit hit, movementSetup.CeilingCheckDistance);
     }
     #endregion Movement Checks
 
