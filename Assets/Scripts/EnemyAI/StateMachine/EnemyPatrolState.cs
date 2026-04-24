@@ -2,24 +2,54 @@ using UnityEngine;
 
 public class EnemyPatrolState: EnemyBaseState
 {
+    int _lastWaypointIndex;
+    int _currentWaypointIndex;
+
     public override void EnterState(EnemyStateMachine stateMachine)
     {
         Debug.Log("Entering Patrol State");
+        var agent = stateMachine.EnemyAI.Agent;
+
+        agent.speed = stateMachine.EnemyAI.Data.patrolSpeed;
+        _currentWaypointIndex = _lastWaypointIndex;
+        agent.SetDestination(stateMachine.EnemyAI.Data.waypoints[_currentWaypointIndex].position);
     }
 
     public override void UpdateState(EnemyStateMachine stateMachine)
     {
-        Debug.Log("Updating Patrol State...");
+        MoveAlongPatrolPath(stateMachine);
+        if (stateMachine.EnemyAI.isPlayerVisible)
+        {
+            stateMachine.ChangeState(stateMachine.ChaseState);
+        }
     }
 
-    public override void ExitState()
+    public override void ExitState(EnemyStateMachine stateMachine)
     {
         Debug.Log("Exiting Patrol State");
+        var agent = stateMachine.EnemyAI.Agent;
+
+        agent.ResetPath();
+        agent.speed = stateMachine.EnemyAI.Data.baseSpeed;
     }
 
-    private void MoveAlongPatrolPath()
+    private void MoveAlongPatrolPath(EnemyStateMachine stateMachine)
     {
-        Debug.Log("Moving along the patrol path...");
-        // Implement patrol movement logic here, such as moving between waypoints
+        Vector3 enemyAIPos = stateMachine.EnemyAI.transform.position;
+        Vector3 currentWaypointPos = stateMachine.EnemyAI.Data.waypoints[_currentWaypointIndex].position;
+        float tolerance = stateMachine.EnemyAI.Data.waypointTolerance;
+        var agent = stateMachine.EnemyAI.Agent;
+
+        // Check if the current waypoint has been reached
+        if (Vector3.Distance(enemyAIPos, currentWaypointPos) <= tolerance)
+        {
+            _lastWaypointIndex = _currentWaypointIndex; // Update the last waypoint index to the current one
+            _currentWaypointIndex++;
+            if (_currentWaypointIndex >= stateMachine.EnemyAI.Data.waypoints.Length)
+            {
+                _currentWaypointIndex = 0;
+            }
+            agent.SetDestination(stateMachine.EnemyAI.Data.waypoints[_currentWaypointIndex].position);
+        }
     }
 }

@@ -2,32 +2,40 @@ using UnityEngine;
 
 public class EnemyStateMachine
 {
+    public EnemyBaseAI EnemyAI { get; private set; }
 
-    EnemyBaseState currentState;
-    EnemyIdleState idleState;
-    EnemyPatrolState patrolState;
-    EnemyChaseState chaseState;
-    EnemyAttackState attackState;
+    public EnemyIdleState IdleState { get; private set; }
+    public EnemyPatrolState PatrolState { get; private set; }
+    public EnemyChaseState ChaseState { get; private set; }
+    public EnemyAttackState AttackState { get; private set; }
+    EnemyBaseState _currentState;
 
-    public EnemyStateMachine(EnemyBaseState startingState)
+    public EnemyStateMachine(EnemyBaseAI enemyAI)
     {
-        Initialize(startingState);
+        EnemyAI = enemyAI;
+        Initialize();
     }
 
-    void Initialize(EnemyBaseState startingState)
+    void Initialize()
     {
-        idleState = new EnemyIdleState();
-        patrolState = new EnemyPatrolState();
-        chaseState = new EnemyChaseState();
-        attackState = new EnemyAttackState();
+        IdleState = new EnemyIdleState();
+        PatrolState = new EnemyPatrolState();
+        ChaseState = new EnemyChaseState();
+        AttackState = new EnemyAttackState();
 
-        currentState = startingState;
-        currentState.EnterState(this);
+        _currentState = EnemyAI.Data.waypoints.Length > 0 ? PatrolState : IdleState;
+        _currentState.EnterState(this);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void UpdateStateMachine()
     {
-        currentState.UpdateState(this);
+        _currentState.UpdateState(this);
+    }
+
+    public void ChangeState(EnemyBaseState newState)
+    {
+        _currentState.ExitState(this);
+        _currentState = newState;
+        _currentState.EnterState(this);
     }
 }

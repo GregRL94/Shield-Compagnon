@@ -5,21 +5,18 @@ public class EnemyChaseState: EnemyBaseState
     public override void EnterState(EnemyStateMachine stateMachine)
     {
         Debug.Log("Entering Chase State");
+        stateMachine.EnemyAI.Agent.speed = stateMachine.EnemyAI.Data.chaseSpeed;
     }
 
     public override void UpdateState(EnemyStateMachine stateMachine)
     {
-        Debug.Log("Updating Chase State...");
+        stateMachine.EnemyAI.Agent.SetDestination(stateMachine.EnemyAI.Target.transform.position);
     }
 
-    public override void ExitState()
+    public override void ExitState(EnemyStateMachine stateMachine)
     {
         Debug.Log("Exiting Chase State");
-    }
-
-    private void MoveTowardsTarget()
-    {
-        Debug.Log("Moving towards the target...");
-        // Implement movement logic here, such as using Unity's NavMeshAgent to move towards the player
+        stateMachine.EnemyAI.Agent.ResetPath();
+        stateMachine.EnemyAI.Agent.speed = stateMachine.EnemyAI.Data.baseSpeed;
     }
 }

@@ -13,7 +13,7 @@ public class EnemyAttackState: EnemyBaseState
         // Here you would add logic to perform the attack, such as reducing the player's health
     }
 
-    public override void ExitState()
+    public override void ExitState(EnemyStateMachine stateMachine)
     {
         Debug.Log("Exiting Attack State");
     }
