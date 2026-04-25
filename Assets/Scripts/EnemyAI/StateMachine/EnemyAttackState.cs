@@ -5,22 +5,37 @@ public class EnemyAttackState: EnemyBaseState
     public override void EnterState(EnemyStateMachine stateMachine)
     {
         Debug.Log("Entering Attack State");
+        stateMachine.EnemyAI.Agent.ResetPath();
     }
 
     public override void UpdateState(EnemyStateMachine stateMachine)
     {
-        Debug.Log("Updating Attack State...");
-        // Here you would add logic to perform the attack, such as reducing the player's health
+        EnemyBaseAI enemyAI = stateMachine.EnemyAI;
+        float distanceToTarget = Vector3.Distance(enemyAI.transform.position, enemyAI.Target.transform.position);
+
+        if (enemyAI.isPlayerVisible && distanceToTarget <= enemyAI.Data.AttackRange)
+        {
+            enemyAI.TryAttack();
+        }
+        else if (enemyAI.isPlayerVisible && distanceToTarget > enemyAI.Data.AttackRange)
+        {
+            stateMachine.ChangeState(stateMachine.ChaseState);
+        }
+        else
+        {
+            if (enemyAI.Waypoints.Length > 0)
+            {
+                stateMachine.ChangeState(stateMachine.PatrolState);
+            }
+            else
+            {
+                stateMachine.ChangeState(stateMachine.IdleState);
+            }
+        }
     }
 
     public override void ExitState(EnemyStateMachine stateMachine)
     {
         Debug.Log("Exiting Attack State");
-    }
-
-    private void AttackTarget()
-    {
-        Debug.Log("Attacking the target!");
-        // Implement attack logic here, such as applying damage to the player
     }
 }

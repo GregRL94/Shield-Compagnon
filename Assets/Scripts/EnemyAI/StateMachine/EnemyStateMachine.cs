@@ -23,7 +23,7 @@ public class EnemyStateMachine
         ChaseState = new EnemyChaseState();
         AttackState = new EnemyAttackState();
 
-        _currentState = EnemyAI.Data.waypoints.Length > 0 ? PatrolState : IdleState;
+        _currentState = EnemyAI.Waypoints.Length > 0 ? PatrolState : IdleState;
         _currentState.EnterState(this);
     }
 
