@@ -61,6 +61,8 @@ public class CharacterMovement : MonoBehaviour
     private Vector3 _movement;
     private float _gravity = -9.81f;
     private float _groundedGravity = -0.1f;
+    private float _gravityMultiplier = 2f; // Multiplier for gravity when falling to create a heavier feel
+    private float _maxFallingSpeed = -20f;
     private float _currentMoveSpeed;
 
     private bool _isGrounded;
@@ -108,7 +110,8 @@ public class CharacterMovement : MonoBehaviour
     #region Movement Checks
     void CheckIfGrounded()
     {
-        bool groundDetected = Physics.SphereCast(transform.position, movementSetup.GroundCheckRadius, Vector3.down, out RaycastHit hit, movementSetup.GroundCheckDistance, movementSetup.GroundLayer);
+        // bool groundDetected = Physics.SphereCast(transform.position, movementSetup.GroundCheckRadius, Vector3.down, out RaycastHit hit, movementSetup.GroundCheckDistance, movementSetup.GroundLayer);
+        bool groundDetected = Physics.BoxCast(transform.position, new Vector3(0.5f, movementSetup.GroundCheckRadius, 0.5f), Vector3.down, Quaternion.identity, movementSetup.GroundCheckDistance);
         _isGrounded = groundDetected && _movement.y <= 0f; // Ensure the character is moving downwards or stationary to be considered grounded
     }
 
@@ -184,12 +187,12 @@ public class CharacterMovement : MonoBehaviour
     void HandleJump()
     {
         if(_isDashing) { return; }
-        if (_isGrounded && !_isJumping && _playerInputHandler.JumpPressed() && !_isCrouching)
+        if (_isGrounded && !_isJumping && _playerInputHandler.JumpPressedThisFrame() && !_isCrouching)
         {
             _isJumping = true;
             _movement.y = _initialJumpSpeed;
         }
-        else if (_isJumping && !_playerInputHandler.JumpPressed() && _isGrounded)
+        else if (_isJumping && !_playerInputHandler.JumpPressedThisFrame() && _isGrounded)
         {
             _isJumping = false;
         }
@@ -198,7 +201,7 @@ public class CharacterMovement : MonoBehaviour
     void HandleDash()
     {
         if(_isCrouching) { return; }
-        if ((_isGrounded || dashSetup.CanAirDash) && !_isDashing && !_isCrouching && _playerInputHandler.DashPressed() && _dashCooldownTimer <= 0f)
+        if ((_isGrounded || dashSetup.CanAirDash) && !_isDashing && !_isCrouching && _playerInputHandler.DashPressedThisFrame() && _dashCooldownTimer <= 0f)
         {
             // If the player tries to dash without ever moving, we set the dash direction to forward by default.
             // Otherwise, we use the last non-zero movement direction as the dash direction.
@@ -214,13 +217,16 @@ public class CharacterMovement : MonoBehaviour
 
     void HandleGravity()
     {
-        if (!_isGrounded)
+        if (!_isGrounded && !_isDashing)
         {
+            bool isFalling = _movement.y <= 0f || !_playerInputHandler.JumpPressed();
+            float gravityMultiplier = isFalling ? _gravityMultiplier : 1f; // Stronger gravity when falling for a heavier feel
+
             // Verlet Integration
             float previousY = _movement.y;
-            float newY = _movement.y + _gravity * Time.deltaTime;
+            float newY = _movement.y + _gravity * gravityMultiplier * Time.deltaTime;
             float nextY = (previousY + newY) * 0.5f;
-            _movement.y = nextY;
+            _movement.y = Mathf.Max(nextY, _maxFallingSpeed); // Clamp to prevent ridiculous falling speeds
         }
         else if (!_isJumping)
         {
