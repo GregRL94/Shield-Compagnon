@@ -56,10 +56,15 @@ public class PlayerInputHandler : MonoBehaviour
 
     public bool JumpPressed()
     {
+        return _inputActions.Player.Jump.IsPressed();
+    }
+
+    public bool JumpPressedThisFrame()
+    {
         return _inputActions.Player.Jump.WasPressedThisFrame();
     }
 
-    public bool DashPressed()
+    public bool DashPressedThisFrame()
     {
         return _inputActions.Player.Dash.WasPressedThisFrame();
     }
