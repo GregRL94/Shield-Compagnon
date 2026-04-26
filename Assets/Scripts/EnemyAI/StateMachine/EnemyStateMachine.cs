@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class EnemyStateMachine
 {
     public EnemyBaseAI EnemyAI { get; private set; }

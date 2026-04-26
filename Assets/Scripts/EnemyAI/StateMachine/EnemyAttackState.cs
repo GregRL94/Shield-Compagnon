@@ -5,7 +5,12 @@ public class EnemyAttackState: EnemyBaseState
     public override void EnterState(EnemyStateMachine stateMachine)
     {
         Debug.Log("Entering Attack State");
-        stateMachine.EnemyAI.Agent.ResetPath();
+        var agent = stateMachine.EnemyAI.Agent;
+
+        agent.ResetPath();
+        agent.velocity = Vector3.zero;
+        agent.isStopped = true;
+        agent.updateRotation = false;
     }
 
     public override void UpdateState(EnemyStateMachine stateMachine)
@@ -15,6 +20,7 @@ public class EnemyAttackState: EnemyBaseState
 
         if (enemyAI.isPlayerVisible && distanceToTarget <= enemyAI.Data.AttackRange)
         {
+            enemyAI.LookAtTarget();
             enemyAI.TryAttack();
         }
         else if (enemyAI.isPlayerVisible && distanceToTarget > enemyAI.Data.AttackRange)
@@ -37,5 +43,7 @@ public class EnemyAttackState: EnemyBaseState
     public override void ExitState(EnemyStateMachine stateMachine)
     {
         Debug.Log("Exiting Attack State");
+        stateMachine.EnemyAI.Agent.isStopped = false;
+        stateMachine.EnemyAI.Agent.updateRotation = true;
     }
 }

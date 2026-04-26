@@ -9,7 +9,7 @@ public class EnemyIdleState: EnemyBaseState
     {
         Debug.Log("Entering Idle State");
         Vector3 enemyAIPos = stateMachine.EnemyAI.transform.position;
-        float tolerance = stateMachine.EnemyAI.Data.WaypointTolerance;
+        float tolerance = stateMachine.EnemyAI.WaypointTolerance;
 
         // If there are no patrol waypoints defined, sets the current position as the idle point
         if (!_idlePointSetup)

@@ -37,7 +37,7 @@ public class EnemyPatrolState: EnemyBaseState
     {
         Vector3 enemyAIPos = stateMachine.EnemyAI.transform.position;
         Vector3 currentWaypointPos = stateMachine.EnemyAI.Waypoints[_currentWaypointIndex].position;
-        float tolerance = stateMachine.EnemyAI.Data.WaypointTolerance;
+        float tolerance = stateMachine.EnemyAI.WaypointTolerance;
         var agent = stateMachine.EnemyAI.Agent;
 
         // Check if the current waypoint has been reached

@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyBaseAI : MonoBehaviour
+public class EnemyBaseAI : MonoBehaviour, IHittable
 {
-    [field: SerializeField, Tooltip("The enemy configuration data.")] public EnemyData Data { get; protected set; } // enemy configuration data
-    [field: SerializeField, Tooltip("The point from which attacks are made.")] public Transform AttackPoint { get; protected set; } // The point from which attacks are made
-    [field: SerializeField, Tooltip("The patrol waypoints for the enemy.")] public Transform[] Waypoints { get; protected set; } // The patrol waypoints for the enemy
+    [field: SerializeField, Tooltip("The enemy configuration data.")] public EnemyData Data { get; protected set; }
+    [field: SerializeField, Tooltip("The patrol waypoints for the enemy.")] public Transform[] Waypoints { get; protected set; }
+    [field: SerializeField, Tooltip("The tolerance for reaching waypoints.")] public float WaypointTolerance { get; private set; }
 
     public NavMeshAgent Agent { get; protected set; }
     public GameObject Target { get; protected set; }
@@ -27,7 +27,8 @@ public class EnemyBaseAI : MonoBehaviour
         {
             Agent = agent;
             Agent.speed = Data.BaseSpeed;
-            Agent.stoppingDistance = Data.AttackRange - 0.1f * Data.AttackRange; // Stop slightly after the attack range to ensure it can attack
+            Agent.angularSpeed = Data.RotationSpeed;
+            Agent.stoppingDistance = Data.AttackRange;
         }
         else
         {
@@ -54,7 +55,7 @@ public class EnemyBaseAI : MonoBehaviour
         if (_nextAttackTimer > 0f) { _nextAttackTimer -= Time.deltaTime; }
     }
 
-    protected virtual void LineOfSight()
+    protected void LineOfSight()
     {
         if (Target == null)
         {
@@ -72,6 +73,7 @@ public class EnemyBaseAI : MonoBehaviour
             RaycastHit hit;
             if (!Physics.Raycast(transform.position, dir.normalized, out hit, Vector3.Distance(transform.position, Target.transform.position), Data.VisionObstacleMask))
             {
+                if (!isPlayerVisible) { Debug.Log("Player detected by " + gameObject.name + "!"); }
                 isPlayerVisible = true;
                 LastKnownPlayerPosition = Target.transform.position;
             }
@@ -86,7 +88,18 @@ public class EnemyBaseAI : MonoBehaviour
         }
     }
 
-    public bool TryAttack()
+    public void LookAtTarget()
+    {
+        if (Target != null && isPlayerVisible)
+        {
+            //transform.LookAt(Target.transform.position);
+            Vector3 direction = (Target.transform.position - transform.position).normalized;
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * (Data.RotationSpeed / 10f));
+        }
+    }
+
+    public virtual bool TryAttack()
     {
         if (_nextAttackTimer <= 0f)
         {
@@ -99,11 +112,32 @@ public class EnemyBaseAI : MonoBehaviour
 
     protected virtual void Attack()
     {
+        // Derived classes should override this method.
         Debug.Log("Attacking the target!");
+    }
+
+    protected void TakeDamage(float damage)
+    {
+        if (isDead) { return; }
+        CurrentHealth -= damage;
+        CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, Data.Health);
+        Debug.Log(gameObject.name + " took " + damage + " damage. Current health: " + CurrentHealth);
+        if (CurrentHealth <= 0f)
+        {
+            Die();
+        }
+    }
+
+    protected virtual void Die()
+    {
+        isDead = true;
+        Agent.isStopped = true;
+        Debug.Log(gameObject.name + " has died.");
     }
 
     protected virtual void CreateStateMachine()
     {
+        // Derived classes should override this method.
         _stateMachine = new EnemyStateMachine(this);
     }
 
@@ -118,6 +152,7 @@ public class EnemyBaseAI : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            Debug.Log("Player entered detection range of " + gameObject.name);
             Target = other.gameObject;
         }
     }
@@ -126,7 +161,13 @@ public class EnemyBaseAI : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            Debug.Log("Player exited detection range of " + gameObject.name);
             Target = null;
         }
+    }
+
+    public void TakeHit(float value)
+    {
+        TakeDamage(value);
     }
 }

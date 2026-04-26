@@ -14,6 +14,7 @@ public class EnemyChaseState: EnemyBaseState
 
         if (enemyAI.isPlayerVisible)
         {
+            // If the player is within attack range, transition to the AttackState. Otherwise, continue chasing the player.
             if (Vector3.Distance(enemyAI.transform.position, enemyAI.Target.transform.position) <= enemyAI.Data.AttackRange)
             {
                 stateMachine.ChangeState(stateMachine.AttackState);
@@ -25,6 +26,7 @@ public class EnemyChaseState: EnemyBaseState
         }
         else
         {
+            // If the player is not visible, transition back to the PatrolState or IdleState based on whether waypoints are available.
             if (enemyAI.Waypoints.Length > 0)
             {
                 stateMachine.ChangeState(stateMachine.PatrolState);
