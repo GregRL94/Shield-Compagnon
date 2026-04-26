@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d2e9925eec6be544a04f794e917838a, type: 3}
+  m_Name: MeleeData
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  <Health>k__BackingField: 50
+  <RotationSpeed>k__BackingField: 240
+  <BaseSpeed>k__BackingField: 3
+  <PatrolSpeed>k__BackingField: 5
+  <ChaseSpeed>k__BackingField: 9
+  <AttackRange>k__BackingField: 1.25
+  <AttackSpeed>k__BackingField: 0.5
+  <AttacksAffectWhat>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 64
+  <Damage>k__BackingField: 10
+  <DetectionRadius>k__BackingField: 8
+  <VisionAngle>k__BackingField: 140
+  <VisionObstacleMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 256

@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class CharacterHealth : MonoBehaviour
+public class CharacterHealth : MonoBehaviour, IHittable
 {
     [SerializeField] private float _maxHealth = 100f;
     [SerializeField] private float _iFrameDuration = 0.25f;
@@ -17,14 +17,14 @@ public class CharacterHealth : MonoBehaviour
         _currentHealth = _maxHealth;
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(float damage)
     {
-        // Si frame d'invulnérabilité active, ne pas prendre de dégâts
         if (_isInvulnerable) { return; }
         _currentHealth -= damage;
         _currentHealth = Mathf.Clamp(_currentHealth, 0f, _maxHealth);
+        Debug.Log("Player took " + damage + " damage. Current health: " + _currentHealth);
 
-        // Frame d'invulnérabilité
+        // Invulnerability frame
         SetInvulnerable(_iFrameDuration);
 
         if (_isDead ) { return; }
@@ -55,6 +55,11 @@ public class CharacterHealth : MonoBehaviour
         Debug.Log("Deactivated inputs");
         yield return new WaitForSeconds(_gameOverDelay);
         // Handle game over logic here
-        Debug.Log("Show game Over screen");
+        Debug.Log("Show Game Over screen");
+    }
+
+    public void TakeHit(float value)
+    {
+        TakeDamage(value);
     }
 }
