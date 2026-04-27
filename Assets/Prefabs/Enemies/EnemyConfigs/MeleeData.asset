@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MeleeData
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   <Health>k__BackingField: 50
-  <RotationSpeed>k__BackingField: 240
+  <RotationSpeed>k__BackingField: 300
   <BaseSpeed>k__BackingField: 3
   <PatrolSpeed>k__BackingField: 5
   <ChaseSpeed>k__BackingField: 9

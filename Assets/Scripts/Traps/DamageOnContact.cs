@@ -2,12 +2,13 @@ using UnityEngine;
 
 public class DamageOnContact : MonoBehaviour
 {
-    [SerializeField] private int damageAmount = 10;
+    [SerializeField] private int _damageAmount = 10;
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        if (other.TryGetComponent<IHittable>(out var hittable))
         {
-            Debug.Log("Player hit Laser: " + gameObject.name);
+            hittable.TakeHit(_damageAmount);
         }
     }
 }

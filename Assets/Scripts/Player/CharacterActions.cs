@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using Unity.Collections;
 using UnityEngine;
 
 #region Setup Classes
@@ -33,7 +32,7 @@ public class CharacterActions : MonoBehaviour
 
     #region Attributes
     [Header("Shield Settings")]
-    [field: SerializeField, Tooltip("The player's shield prefab")] private GameObject _playerShield;
+    [field: SerializeField, Tooltip("The player's shield prefab")] public GameObject PlayerShield { get; private set; }
     public ShieldPointsOnCharacter shieldPointsOnChar;
     public ShieldThrowParameters shieldThrowParameters;
 
@@ -61,7 +60,7 @@ public class CharacterActions : MonoBehaviour
     {
         if (!_shieldOnCharacter && !_shieldJustThrown)
         {
-            if (Vector3.Distance(transform.position, _playerShield.transform.position) <= 1f)
+            if (Vector3.Distance(transform.position, PlayerShield.transform.position) <= 1f)
             {
                 SetShieldOnCharacter(true);
                 SetShieldPositionOnChar(ShieldPosOnCharacter.Rest);
@@ -101,22 +100,22 @@ public class CharacterActions : MonoBehaviour
     void TryCallShield()
     {
         Vector3 pos = transform.position;
-        Vector3 shieldPos = _playerShield.transform.position;
+        Vector3 shieldPos = PlayerShield.transform.position;
         
         if (!Physics.Raycast(pos, shieldPos - pos, Vector3.Distance(pos, shieldPos), shieldThrowParameters.ObstaclesLayer))
         {
-            _playerShield.GetComponent<PlayerShield>().OnShieldCalled(transform.position);
+            PlayerShield.GetComponent<PlayerShield>().OnShieldCalled(transform.position);
         }
     }
 
     void TryThrowShield()
     {
-        float distanceToShield = Vector3.Distance(transform.position, _playerShield.transform.position);
-        float angleToShield = Vector3.Angle(transform.forward, _playerShield.transform.position - transform.position);
+        float distanceToShield = Vector3.Distance(transform.position, PlayerShield.transform.position);
+        float angleToShield = Vector3.Angle(transform.forward, PlayerShield.transform.position - transform.position);
 
         if (_shieldOnCharacter)
         {
-            if (!Physics.SphereCast(_playerShield.transform.position, 0.5f, transform.forward, out RaycastHit hit, shieldThrowParameters.NoObstructionDistance, ~(1 << _playerShield.layer)))
+            if (!Physics.SphereCast(PlayerShield.transform.position, 0.5f, transform.forward, out RaycastHit hit, shieldThrowParameters.NoObstructionDistance, ~(1 << PlayerShield.layer)))
             {
                 Debug.Log("Throwing Shield !");
                 ThrowShield();
@@ -140,6 +139,12 @@ public class CharacterActions : MonoBehaviour
         Debug.Log("Shield thrown !");
     }
 
+    public void ResetShield()
+    {
+        SetShieldOnCharacter(true);
+        SetShieldPositionOnChar(ShieldPosOnCharacter.Rest);
+    }
+
     void SetShieldOnCharacter(bool shieldOnCharacter)
     {
         ShieldAttach?.Invoke(shieldOnCharacter);
@@ -150,7 +155,7 @@ public class CharacterActions : MonoBehaviour
 
     void SetShieldPositionOnChar(ShieldPosOnCharacter posOnChar)
     {
-        Transform shieldTransform = _playerShield.transform;
+        Transform shieldTransform = PlayerShield.transform;
         shieldTransform.SetParent(null);
 
         switch (posOnChar)
@@ -171,8 +176,8 @@ public class CharacterActions : MonoBehaviour
                 Debug.Log("Set shield to block position");
                 break;
             case ShieldPosOnCharacter.Throw:
-                _playerShield.transform.position = shieldPointsOnChar.ThrowPoint.position;
-                _playerShield.transform.rotation = shieldPointsOnChar.ThrowPoint.rotation;
+                shieldTransform.position = shieldPointsOnChar.ThrowPoint.position;
+                shieldTransform.rotation = shieldPointsOnChar.ThrowPoint.rotation;
                 _shieldBlock = false;
                 Debug.Log("Set shield to Throw position");
                 break;
