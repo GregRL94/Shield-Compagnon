@@ -139,7 +139,10 @@ public class PlayerShield : MonoBehaviour
         if (other.gameObject.CompareTag("Player")) { return; }
         if (other.TryGetComponent<IHittable>(out IHittable hittable))
         {
-            hittable.TakeHit(20f);
+            if (Vector3.Distance(transform.position, other.transform.position) < _bounds.extents.x)
+            {
+                hittable.TakeHit(20f);
+            }
         }
     }
 

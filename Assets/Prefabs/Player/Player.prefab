@@ -249,7 +249,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac21388064c91fd4cb85d373b92352ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterActions
-  _playerShield: {fileID: 3201834747520830717}
+  <PlayerShield>k__BackingField: {fileID: 3201834747520830717}
   shieldPointsOnChar:
     <RestPoint>k__BackingField: {fileID: 3629903268026601710}
     <BlockPoint>k__BackingField: {fileID: 4067392536008244549}

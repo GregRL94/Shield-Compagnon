@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -42,6 +43,10 @@ public class DashSetup
 
 public class CharacterMovement : MonoBehaviour
 {
+    #region Events
+    public static Action<float> UpdateJauge;
+    #endregion Events
+
     #region Attributes
     [Header("Setups")]
     public MovementSetup movementSetup;
@@ -49,7 +54,7 @@ public class CharacterMovement : MonoBehaviour
     public DashSetup dashSetup;
 
     [Header("References")]
-    [SerializeField] private GameObject TPCam;
+    [SerializeField] private GameObject TPCam; // Anchor for the camera
     [SerializeField] private float _camMaxXAngle = 85f;
     private float _camXAngle;
 
@@ -73,6 +78,7 @@ public class CharacterMovement : MonoBehaviour
     private bool _isDashing;
     private Coroutine _dashCoroutine;
     private float _dashCooldownTimer;
+    private float _dashJaugeValue;
     private float _initialJumpSpeed;
     #endregion Attributes
 
@@ -111,7 +117,7 @@ public class CharacterMovement : MonoBehaviour
     void CheckIfGrounded()
     {
         // bool groundDetected = Physics.SphereCast(transform.position, movementSetup.GroundCheckRadius, Vector3.down, out RaycastHit hit, movementSetup.GroundCheckDistance, movementSetup.GroundLayer);
-        bool groundDetected = Physics.BoxCast(transform.position, new Vector3(0.5f, movementSetup.GroundCheckRadius, 0.5f), Vector3.down, Quaternion.identity, movementSetup.GroundCheckDistance);
+        bool groundDetected = Physics.BoxCast(transform.position, new Vector3(0.5f, movementSetup.GroundCheckRadius, 0.5f), Vector3.down, Quaternion.identity, movementSetup.GroundCheckDistance, movementSetup.GroundLayer);
         _isGrounded = groundDetected && _movement.y <= 0f; // Ensure the character is moving downwards or stationary to be considered grounded
     }
 
@@ -238,7 +244,12 @@ public class CharacterMovement : MonoBehaviour
     #region Methods
     private void UpdateTimers()
     {
-        if (_dashCooldownTimer > 0f) { _dashCooldownTimer -= Time.deltaTime; }
+        if (_dashCooldownTimer > 0f)
+        {
+            _dashCooldownTimer -= Time.deltaTime;
+            _dashJaugeValue = 1f - (_dashCooldownTimer / dashSetup.DashCooldown);
+            UpdateJauge?.Invoke(_dashJaugeValue); // Update dash jauge value based on cooldown timer
+        }
     }
 
     void SetupJump()
@@ -246,7 +257,13 @@ public class CharacterMovement : MonoBehaviour
         float timeToApex = jumpSetup.JumpTime / 2f;
         _initialJumpSpeed = (2f * jumpSetup.JumpHeight) / timeToApex; // v = d / t
         _gravity = (-2f * jumpSetup.JumpHeight) / (timeToApex * timeToApex); // a = 2d / t^2
-        Debug.Log($"Gravity: {_gravity}, Initial Jump Speed: {_initialJumpSpeed}");
+    }
+
+    public void ResetDashCooldown()
+    {
+        _dashCooldownTimer = 0f;
+        _dashJaugeValue = 1f;
+        UpdateJauge?.Invoke(_dashJaugeValue); // Update dash jauge value to full
     }
 
     IEnumerator Dash()
@@ -261,6 +278,8 @@ public class CharacterMovement : MonoBehaviour
         }  
         _currentMoveSpeed = movementSetup.MoveSpeed;
         _dashCooldownTimer = dashSetup.DashCooldown;
+        _dashJaugeValue = 1f - (_dashCooldownTimer / dashSetup.DashCooldown);
+        UpdateJauge?.Invoke(_dashJaugeValue); // Update dash jauge value based on cooldown timer
         _isDashing = false;
         yield break;
     }

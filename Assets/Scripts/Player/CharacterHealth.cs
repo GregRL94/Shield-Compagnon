@@ -17,7 +17,7 @@ public class CharacterHealth : MonoBehaviour, IHittable
         _currentHealth = _maxHealth;
     }
 
-    public void TakeDamage(float damage)
+    void TakeDamage(float damage)
     {
         if (_isInvulnerable) { return; }
         _currentHealth -= damage;
@@ -39,6 +39,12 @@ public class CharacterHealth : MonoBehaviour, IHittable
         StartCoroutine(Invulnerability(duration));
     }
 
+    public void ResetHealth()
+    {
+        _currentHealth = _maxHealth;
+        _isDead = false;
+    }
+
     IEnumerator Invulnerability(float invulnerabilityDuration)
     {
         _isInvulnerable = true;
@@ -54,8 +60,7 @@ public class CharacterHealth : MonoBehaviour, IHittable
         PlayerInputHandler.Instance.enabled = false;
         Debug.Log("Deactivated inputs");
         yield return new WaitForSeconds(_gameOverDelay);
-        // Handle game over logic here
-        Debug.Log("Show Game Over screen");
+        GameManager.Instance.GameOver();
     }
 
     public void TakeHit(float value)

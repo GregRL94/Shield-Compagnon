@@ -12,7 +12,7 @@ public class EnemyChaseState: EnemyBaseState
     {
         EnemyBaseAI enemyAI = stateMachine.EnemyAI;
 
-        if (enemyAI.isPlayerVisible)
+        if (enemyAI.isPlayerVisible && enemyAI.Target != null)
         {
             // If the player is within attack range, transition to the AttackState. Otherwise, continue chasing the player.
             if (Vector3.Distance(enemyAI.transform.position, enemyAI.Target.transform.position) <= enemyAI.Data.AttackRange)

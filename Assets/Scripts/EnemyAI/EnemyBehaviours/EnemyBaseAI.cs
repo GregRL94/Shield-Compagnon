@@ -4,7 +4,7 @@ using UnityEngine.AI;
 public class EnemyBaseAI : MonoBehaviour, IHittable
 {
     [field: SerializeField, Tooltip("The enemy configuration data.")] public EnemyData Data { get; protected set; }
-    [field: SerializeField, Tooltip("The patrol waypoints for the enemy.")] public Transform[] Waypoints { get; protected set; }
+    [field: SerializeField, Tooltip("The patrol waypoints for the enemy.")] public Transform[] Waypoints { get; set; }
     [field: SerializeField, Tooltip("The tolerance for reaching waypoints.")] public float WaypointTolerance { get; private set; }
 
     public NavMeshAgent Agent { get; protected set; }
