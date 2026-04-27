@@ -3,27 +3,32 @@ using UnityEngine;
 
 public class PlayerShield : MonoBehaviour
 {
+    #region Attributes
     [Header("Movement")]
-    public float speed = 5f;
+    public float speed = 10f;
 
-    [Header("Bounce")]
-    public LayerMask _bounceableLayers; // Layers the object can bounce off
-    public LayerMask _stickableLayers; // Layers the object can stick to (not implemented yet)
+    [Header("Bounce & Stick")]
+    [field: SerializeField, Tooltip("Layers the shield can bounce off")] private LayerMask _bounceableLayers;
+    [field: SerializeField, Tooltip("Layers the shield can stick to")] private LayerMask _stickableLayers;
+    [field: SerializeField, Tooltip("Depth the shield will stick into the surface")] private float _stickDepth;
 
     [Header("Collision detection")]
-    [SerializeField] private int _nbOfRays = 16;
-    [SerializeField, Range(0f, 1f)] private float _minRayAlignement = 0.25f; // Minimum dot product to consider a ray valid for bouncing
-    [SerializeField] private float _noColAfterBounceDuration = 0.15f;
-    [SerializeField] private float _stickDepth;
-    private LayerMask _originalLayer;
-    private float _raycastDistance;
-    private Bounds _bounds;
+    [field: SerializeField, Tooltip("The number of rays used to detect collisions. The more rays, the more accurate, at the cost of performance")] private int _nbOfRays = 16;
+    [field: SerializeField, Tooltip("Minimum dot product to consider a ray valid for bouncing")] private float _minRayAlignement = 0.25f;
+    [field: SerializeField, Tooltip("Duration after a bounce during which collisions are ignored")] private float _noColAfterBounceDuration = 0.15f;
+
+    LayerMask _originalLayer;
+    Bounds _bounds;
+    Vector3 _moveDirection;
+    float _raycastDistance;
+    float _bounceTimer;
     bool _justBounced;
     bool _isStuck;
-    private float _bounceTimer;
-    private Vector3 _moveDirection;
+    bool _isOnCharacter;
+    #endregion Attributes
 
-    private void Start()
+    #region MonoBehaviour Flow
+    void Start()
     {
         _bounds = GetComponent<Collider>().bounds;
         _raycastDistance = _bounds.extents.x;
@@ -33,26 +38,45 @@ public class PlayerShield : MonoBehaviour
     void Update()
     {
         UpdateTimers();
-        if (!_isStuck) { HandleCollsions(); }
+        if (!_isStuck && !_isOnCharacter) { HandleCollsions(); }
         Move();
     }
+    #endregion MonoBehaviour Flow
 
-    public void SetMoveDirection(Vector3 moveDirection)
+    #region Public Methods
+    public void OnShieldThrown(Vector3 moveDirection)
     {
         _moveDirection = moveDirection;
     }
 
-    public void SetTargetPoint(Vector3 targetPoint)
+    public void OnShieldCalled(Vector3 targetPoint)
     { 
         _moveDirection = targetPoint - transform.position;
     }
 
+    public void OnShieldAttached(bool isAttached)
+    {
+        if (isAttached && _isStuck) { _isStuck = false; }
+        _moveDirection = Vector3.zero;
+        _isOnCharacter = isAttached;
+    }
+    #endregion Public Methods
+
+    #region Private Methods
     void Move()
     {
         if (_moveDirection == Vector3.zero) { return; }
         transform.position += _moveDirection.normalized * speed * Time.deltaTime;
     }
 
+    void UpdateTimers()
+    {
+        if (_bounceTimer >= 0) { _bounceTimer -= Time.deltaTime; }
+        else if (_justBounced) { _justBounced = false; }
+    }
+    #endregion Private Methods
+
+    #region Manual Collisions Handling
     void HandleCollsions()
     {
         if (CollisionDetection(out RaycastHit hit) && !_justBounced)
@@ -107,11 +131,16 @@ public class PlayerShield : MonoBehaviour
         }
         return true;
     }
+    #endregion Manual Collisions Handling
 
-    void UpdateTimers()
+    #region OnTriggers
+    private void OnTriggerEnter(Collider other)
     {
-        if (_bounceTimer >= 0) { _bounceTimer -= Time.deltaTime; }
-        else if (_justBounced) { _justBounced = false; }
+        if (other.gameObject.CompareTag("Player")) { return; }
+        if (other.TryGetComponent<IHittable>(out IHittable hittable))
+        {
+            hittable.TakeHit(20f);
+        }
     }
 
     void OnTriggerExit(Collider other)
@@ -122,7 +151,9 @@ public class PlayerShield : MonoBehaviour
             gameObject.layer = _originalLayer;
         }
     }
+    #endregion OnTriggers
 
+    #region Subscriptions
     private void OnEnable()
     {
         Subscribe(true);
@@ -142,13 +173,14 @@ public class PlayerShield : MonoBehaviour
     {
         if (isSubscribed)
         {
-            CharacterActions.ThrowShield += SetMoveDirection;
-            CharacterActions.CallShield += SetTargetPoint;
+            CharacterActions.ShieldAttach += OnShieldAttached;
+            CharacterActions.ShieldThrow += OnShieldThrown;
         }
         else
         {
-            CharacterActions.ThrowShield -= SetMoveDirection;
-            CharacterActions.CallShield -= SetTargetPoint;
+            CharacterActions.ShieldAttach -= OnShieldAttached;
+            CharacterActions.ShieldThrow -= OnShieldThrown;
         }
     }
+    #endregion Subscriptions
 }
