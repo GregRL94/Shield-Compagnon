@@ -1,0 +1,99 @@
+IFT2200 TP2
+Grégory Largange
+Choix de jeu: - Choix A Jeu de Plateforme -
+
+-- Tout le code du jeu a été réalisé par moi même --
+Packages externes:
+ProBuilder
+Cinemachine 3.0
+Navigation
+TMPPro
+
+-- Pas d'Assets externes utilisées --
+
+
+-- Contrôle du jeu --
+WASD - Se déplacer
+Left Shift - Sprinter
+C - s'accroupir (le personnage ne s'accroupit pas mais sa vitesse de déplacement est réduite)
+X - Dash: Le dash se fait dans le dernier sens de déplacement avant le début du dash. On ne peut pas se rediriger avec WASD mais on peut avec la caméra.
+Espace - Sauter: J'ai fais le choix de ne pas rendre le controle du personnage possible dans les airs. Ceci peut être vu et tester dans l'éditeur.
+Clic gauche: Lancer le bouclier
+Clic droit (maintenir) rappeler le bouclier à soi
+
+- But du jeu -
+Le but du jeu est de traverser le niveau et de battre l'ennemi à la fin du niveau
+
+- Amélioration implémentée -
+PickUp d'invulnérabilité: Le joueur ne recoit pas de degats pendant 5s après avoir ramassé le pick up
+
+- Mécanique supplémentaire implémentée -
+MECANIQUE DU BOUCLIER
+Le joueur peut lancer le bouclier en faisant clic gauche. Celui ci peut alors se planter dans certaines surfaces et rebondir sur d'autres. En appuyant sur clic droit, le bouclier revient vers le joueur.
+-> le système n'utilise pas la physique de Unity mais mon propre système de détection de collision utilisant des raycasts et la loi de la réflexion
+-> le système n'utilise donc pas de collider pour détecter les collisions, seulement un trigger pour les besoins du système
+-> le système n'utilise pas de rigidbody dynamique mais uniquement un rigidbody Kinematic pour ne pas être impacté par la physique.
+-> J'utilise des raycasts à intervalles angulaires réguliers du centre du disque vers son cercle pour déterminer les collisions.
+-> Le nombre de raycasts permettant la détection de collision peut être augmenté ou diminué pour avoir plus de précision ou privilégier la performance
+-> J'utilise les lois du produit vectoriel pour déterminer quelles sont les raycasts pertinents pour une collision, c'est à dire seulement ceux dont le produit vectoriel
+avec le vecteur vitesse actuel du bouclier est supérieur à zéro, et plus préscisément une valeur de 0.25. Nous nous rappelons que, avec le produit vectoriel:
+résultat = -1 : les vecteurs ont des directions purement opposées
+resultat < 0 : les vecteurs ont des sens contraires
+rélultats = 0: les vecteurs sont perpendiculaires
+résultat > 0 : les vecteurs vont dans le même sens
+résultat = 1 : les vecteurs sont colinéaires.
+Donc plus le produit vectoriel d'un raycast avec le vecteur vitesse est proche de 1, plus ce raycast est proche d'etre colineaire avec le vecteur vitesse du bouclier.
+-> J'utilise la loi de réflexion de Snell-Descartes (Vectro3.Reflect) pour déterminer l'angle selon lequel le bouclier va rebondir.
+-> J'utilise le systeme de layer pour determiner si le bouclier va rebondir ou se planter dans l'objet qu'il impacte
+-> Quand le bouclier se plante dans un objet, je le fais avancer de quelques décimales à des fins esthétiques.
+-> Quand le bouclier est planté dans un object, il devient une plateforme pour le joueur. Celui-ci peut alors l'utiliser pour sauter ou avoir plus de marge pour un dash
+-> Le joueur à plusieurs positions sur le personnage en fonction de l'utilisation actuelle
+-> Le bouclier se rattache automatiquement au joueur en revenant à sa proximité directe
+-> Cependant, avant ceci, en appuyant sur clic gauche au bon moment, le joueur peut renvoyer le bouclier dans la direction vers laquelle il regarde actuellement.
+
+COMPORTEMENT DU JOUEUR PAR COMPOSITION:
+Afin de limiter les dépendances et d'éviter les noeuds, j'ai séparé le comportement du personnage joueur comme suit:
+- PlayerInputHandler pour lier les inputs joueurs et les retransmettre/
+- CharacerMovement, chargé uniquement de la locomotion
+- CharacterAction, chargé uniquement des autres actions tels lancer le bouclier
+- CharacterHealth qui gere les degats subis et la vie du personnnage joueur
+
+DIFFËRENTS OBSTACLES:
+Laser slicing un laser qui inflige des degats au joueur si celui ci le touche et qui fait des translations via une fonction Sinus appliquée à un offset
+Laser Axe qui effectue également des translations mais au moyen d'un MathF.PingPong appliqué à un offset
+Shooter qui tirent des bullets en face d'eux
+Ennemi IA de melee qui patrouille dans le dernier secteur, pourchasse le joueur si elle le voit et l'attaque si elle est à portée
+
+
+LES IA - MACHINE A ETATS - POLYMORPHISME
+
+			------------------------|
+			|						v
+		IDLE <---> CHASE <----> ATTACK
+					^				^
+					|				|
+					|				|
+		PATROL <----|---------------|
+
+Tous les états héritent de ENEMYBASESTATE qui est une classe abstraite permettant de poser les bases à suivre pour la création des états concrets
+		
+COMPORTEMENT d'IA - POLYMORPHISME
+
+		ENEMYBASEAI--------> ENEMYMELEEAI
+					|______> ENEMY RANGE AI
+					
+Note : Le range enemyAI n'es pas présent dans la scene du build Gym_LD mais elle l'est dans Gym_AI
+
+Les IA utilisent des Scriptable Object pour prendre leurs paramètres
+SCRIPTABLE OBJECTS - POLYMORPHISME:
+
+		ENNEMYDATA --------> MELEEDATA
+					|______> RANGEDATA
+					
+Jai remarqué en testant la scène Gym_LD qui est aussi celle du build que la détection par raycasts était brisé sécifiquement dans cette scène.
+Je n'ai pas eu le temps d'approfondir le sujet mais ceci est du au tres grand mesh et au bas nombre de vertices sur les mesh particulièrement grand, réduisant la pertinence des surfaces et des normales à la surface.
+
+INTERFACE DE DEGATS
+Interface de degats partagée par tous les elements pouvant prendre dégats
+
+Pas d'assets extérieurs hormis les packages précédemment cités
