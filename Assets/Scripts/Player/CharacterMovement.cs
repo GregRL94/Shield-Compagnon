@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -12,6 +13,9 @@ public class MovementSetup
     [field: SerializeField, Tooltip("What is considered ground for the character.")] public LayerMask GroundLayer { get; private set; }
     [field: SerializeField, Tooltip("The radius of the sphere used for ground checking.")] public float GroundCheckRadius { get; private set; } = 0.5f;
     [field: SerializeField, Tooltip("The distance for the sphere cast used for ground checking.")] public float GroundCheckDistance { get; private set; } = 0.5f;
+
+    [field: SerializeField, Tooltip("The radius of the sphere used for ceiling checking.")] public float CeilingCheckRadius { get; private set; } = 0.5f;
+    [field: SerializeField, Tooltip("The distance for the sphere cast used for ceiling checking.")] public float CeilingCheckDistance { get; private set; } = 0.5f;
 
     [field: SerializeField, Tooltip("The speed multiplier when the character is crouching.")] public float CrouchSpeedMultiplier { get; private set; } = 0.5f;
     [field: SerializeField, Tooltip("The speed multiplier when the character is sprinting.")] public float SprintSpeedMultiplier { get; private set; } = 1.5f;
@@ -39,6 +43,10 @@ public class DashSetup
 
 public class CharacterMovement : MonoBehaviour
 {
+    #region Events
+    public static Action<float> UpdateJauge;
+    #endregion Events
+
     #region Attributes
     [Header("Setups")]
     public MovementSetup movementSetup;
@@ -46,29 +54,32 @@ public class CharacterMovement : MonoBehaviour
     public DashSetup dashSetup;
 
     [Header("References")]
-    [SerializeField] private GameObject TPCam;
+    [SerializeField] private GameObject TPCam; // Anchor for the camera
     [SerializeField] private float _camMaxXAngle = 85f;
-
     private float _camXAngle;
+
     private CharacterController _controller;
     private PlayerInputHandler _playerInputHandler;
 
-    private Vector2 _lastNonZeroMoveDir = new Vector2(0f, 1f);
+    private Vector2 _lastNonZeroMoveDir;
+    private Vector2 _lastMoveDir;
     private Vector3 _movement;
-
     private float _gravity = -9.81f;
     private float _groundedGravity = -0.1f;
+    private float _gravityMultiplier = 2f; // Multiplier for gravity when falling to create a heavier feel
+    private float _maxFallingSpeed = -20f;
     private float _currentMoveSpeed;
-    private float _initialJumpSpeed;
-    private float _yVelocity;
 
     private bool _isGrounded;
+    private bool _ceilingFree;
     private bool _isCrouching;
     private bool _isSprinting;
     private bool _isJumping;
     private bool _isDashing;
     private Coroutine _dashCoroutine;
     private float _dashCooldownTimer;
+    private float _dashJaugeValue;
+    private float _initialJumpSpeed;
     #endregion Attributes
 
     #region MonoBehaviour Flow
@@ -90,6 +101,7 @@ public class CharacterMovement : MonoBehaviour
     {
         UpdateTimers();
         CheckIfGrounded();
+        CheckCeiling();
         HandleCrouch();
         HandleSprint();
         HandleDash();
@@ -104,12 +116,14 @@ public class CharacterMovement : MonoBehaviour
     #region Movement Checks
     void CheckIfGrounded()
     {
-        _isGrounded = Physics.SphereCast(transform.position, movementSetup.GroundCheckRadius, Vector3.down, out RaycastHit hit, movementSetup.GroundCheckDistance, movementSetup.GroundLayer);
+        // bool groundDetected = Physics.SphereCast(transform.position, movementSetup.GroundCheckRadius, Vector3.down, out RaycastHit hit, movementSetup.GroundCheckDistance, movementSetup.GroundLayer);
+        bool groundDetected = Physics.BoxCast(transform.position, new Vector3(0.5f, movementSetup.GroundCheckRadius, 0.5f), Vector3.down, Quaternion.identity, movementSetup.GroundCheckDistance, movementSetup.GroundLayer);
+        _isGrounded = groundDetected && _movement.y <= 0f; // Ensure the character is moving downwards or stationary to be considered grounded
     }
 
-    bool CheckCeiling()
+    void CheckCeiling()
     {
-        return Physics.SphereCast(transform.position, movementSetup.GroundCheckRadius, Vector3.up, out RaycastHit hit, movementSetup.GroundCheckDistance);
+        _ceilingFree = !Physics.SphereCast(transform.position, movementSetup.CeilingCheckRadius, Vector3.up, out RaycastHit hit, movementSetup.CeilingCheckDistance);
     }
     #endregion Movement Checks
 
@@ -124,22 +138,26 @@ public class CharacterMovement : MonoBehaviour
 
     void HandleMovement()
     {
-        Vector2 movementDir;
+        Vector2 movementDir = Vector2.zero;
         Vector3 horizontalMovement;
 
         if ((_isGrounded || movementSetup.AirControl) && !_isDashing)
         {
             movementDir = PlayerInputHandler.Instance.GetPlayerMovement();
             if (movementDir != Vector2.zero) { _lastNonZeroMoveDir = movementDir; }
+            _lastMoveDir = movementDir;
         }
-        else
+        else if (_isDashing)
         {
-            movementDir = _lastNonZeroMoveDir;
+            movementDir = _lastNonZeroMoveDir; // Player cannot change direction while dashing, and dash is performed in the last non-zero movement direction
+        }
+        else if (_isJumping)
+        {
+            movementDir = _lastMoveDir; // Player cannot change direction while jumping, and jump is performed in the last movement direction before the jump
         }
 
         horizontalMovement = (transform.rotation * new Vector3(movementDir.x, 0f, movementDir.y)).normalized * _currentMoveSpeed;
         _movement = new Vector3(horizontalMovement.x, _movement.y, horizontalMovement.z);
-        // Debug.Log("Final movement vector: " + _movement);
     }
 
     void HandleCrouch()
@@ -150,7 +168,7 @@ public class CharacterMovement : MonoBehaviour
             _isCrouching = true;
             _currentMoveSpeed = movementSetup.MoveSpeed * movementSetup.CrouchSpeedMultiplier;
         }
-        else if (!_playerInputHandler.CrouchPressed() && !CheckCeiling())
+        else if (!_playerInputHandler.CrouchPressed() && _ceilingFree)
         {
             _currentMoveSpeed = movementSetup.MoveSpeed;
             _isCrouching = false;
@@ -175,14 +193,12 @@ public class CharacterMovement : MonoBehaviour
     void HandleJump()
     {
         if(_isDashing) { return; }
-        if (_isGrounded && !_isJumping && _playerInputHandler.JumpPressed() && !_isCrouching)
+        if (_isGrounded && !_isJumping && _playerInputHandler.JumpPressedThisFrame() && !_isCrouching)
         {
             _isJumping = true;
             _movement.y = _initialJumpSpeed;
-            Debug.Log("Jump");
-            Debug.Log("Y right after jumping: " + _movement.y);
         }
-        else if (_isJumping && !_playerInputHandler.JumpPressed() && _isGrounded)
+        else if (_isJumping && !_playerInputHandler.JumpPressedThisFrame() && _isGrounded)
         {
             _isJumping = false;
         }
@@ -191,8 +207,12 @@ public class CharacterMovement : MonoBehaviour
     void HandleDash()
     {
         if(_isCrouching) { return; }
-        if ((_isGrounded || dashSetup.CanAirDash) && !_isDashing && !_isCrouching && _playerInputHandler.DashPressed() && _dashCooldownTimer <= 0f)
+        if ((_isGrounded || dashSetup.CanAirDash) && !_isDashing && !_isCrouching && _playerInputHandler.DashPressedThisFrame() && _dashCooldownTimer <= 0f)
         {
+            // If the player tries to dash without ever moving, we set the dash direction to forward by default.
+            // Otherwise, we use the last non-zero movement direction as the dash direction.
+            _lastNonZeroMoveDir = _lastNonZeroMoveDir == Vector2.zero ? new Vector2(0f, 1f) : _lastNonZeroMoveDir;
+
             if (_dashCoroutine != null)
             {
                 StopCoroutine(_dashCoroutine);
@@ -203,19 +223,20 @@ public class CharacterMovement : MonoBehaviour
 
     void HandleGravity()
     {
-        if (!_isGrounded)
+        if (!_isGrounded && !_isDashing)
         {
-            //_movement.y += _gravity * Time.deltaTime;
-            // Intégration de Verlet
+            bool isFalling = _movement.y <= 0f || !_playerInputHandler.JumpPressed();
+            float gravityMultiplier = isFalling ? _gravityMultiplier : 1f; // Stronger gravity when falling for a heavier feel
+
+            // Verlet Integration
             float previousY = _movement.y;
-            float newY = _movement.y + _gravity * Time.deltaTime;
+            float newY = _movement.y + _gravity * gravityMultiplier * Time.deltaTime;
             float nextY = (previousY + newY) * 0.5f;
-            _movement.y = nextY;
-            Debug.Log("Y after gravity: " + _movement.y);
+            _movement.y = Mathf.Max(nextY, _maxFallingSpeed); // Clamp to prevent ridiculous falling speeds
         }
         else if (!_isJumping)
         {
-            _movement.y = _groundedGravity; // Garder le joueur collé au sol lorsqu'il est au sol
+            _movement.y = _groundedGravity; // Keep the character grounded
         }
     }
     #endregion Movement Handlers
@@ -223,16 +244,26 @@ public class CharacterMovement : MonoBehaviour
     #region Methods
     private void UpdateTimers()
     {
-        if (_dashCooldownTimer > 0f) { _dashCooldownTimer -= Time.deltaTime; }
+        if (_dashCooldownTimer > 0f)
+        {
+            _dashCooldownTimer -= Time.deltaTime;
+            _dashJaugeValue = 1f - (_dashCooldownTimer / dashSetup.DashCooldown);
+            UpdateJauge?.Invoke(_dashJaugeValue); // Update dash jauge value based on cooldown timer
+        }
     }
 
     void SetupJump()
     {
         float timeToApex = jumpSetup.JumpTime / 2f;
-        //_initialJumpSpeed = Mathf.Sqrt(jumpSetup.JumpHeight * -2f * _gravity);
         _initialJumpSpeed = (2f * jumpSetup.JumpHeight) / timeToApex; // v = d / t
         _gravity = (-2f * jumpSetup.JumpHeight) / (timeToApex * timeToApex); // a = 2d / t^2
-        Debug.Log($"Gravity: {_gravity}, Initial Jump Speed: {_initialJumpSpeed}");
+    }
+
+    public void ResetDashCooldown()
+    {
+        _dashCooldownTimer = 0f;
+        _dashJaugeValue = 1f;
+        UpdateJauge?.Invoke(_dashJaugeValue); // Update dash jauge value to full
     }
 
     IEnumerator Dash()
@@ -247,6 +278,8 @@ public class CharacterMovement : MonoBehaviour
         }  
         _currentMoveSpeed = movementSetup.MoveSpeed;
         _dashCooldownTimer = dashSetup.DashCooldown;
+        _dashJaugeValue = 1f - (_dashCooldownTimer / dashSetup.DashCooldown);
+        UpdateJauge?.Invoke(_dashJaugeValue); // Update dash jauge value based on cooldown timer
         _isDashing = false;
         yield break;
     }
