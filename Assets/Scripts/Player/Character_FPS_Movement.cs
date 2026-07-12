@@ -34,7 +34,9 @@ public class Character_FPS_Movement : MonoBehaviour
 
     private bool _isGrounded;
     private bool _isCeilingFree;
-    private bool _isMoving;
+    private bool _isCrouching;
+    private bool _isSprinting;
+    private bool _isJumping;
     #endregion Attributes
 
     #region Monobehaviour Flow
