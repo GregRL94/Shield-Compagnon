@@ -6,7 +6,7 @@ public class PlayerJumpState : PlayerMovementBaseState
     {
         var controller = stateMachine.Controller;
         controller.IsJumping = true;
-        controller.Jump();
+        controller.Jump(Vector3.zero); // To modify with actual values
     }
 
     public override void UpdateState(PlayerMovementStateMachine stateMachine)

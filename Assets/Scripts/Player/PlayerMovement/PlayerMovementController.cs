@@ -33,8 +33,8 @@ public class PlayerMovementController : MonoBehaviour
 {
     #region Attributes
     [Header("Parameters")]
-    public MovementParameters movementParams;
-    public JumpParameters jumpParams;
+    public MovementParameters MovementParams;
+    public JumpParameters JumpParams;
 
     [Header("References")]
     [SerializeField] private GameObject FPCam; // Anchor for the camera
@@ -88,20 +88,30 @@ public class PlayerMovementController : MonoBehaviour
     #region Movement Checks
     void CheckIfGrounded()
     {
-        bool groundDetected = Physics.BoxCast(transform.position, new Vector3(0.5f, movementParams.GroundCheckRadius, 0.5f), Vector3.down, Quaternion.identity, movementParams.GroundCheckDistance, movementParams.GroundLayer);
+        bool groundDetected = Physics.BoxCast(transform.position, new Vector3(0.5f, MovementParams.GroundCheckRadius, 0.5f), Vector3.down, Quaternion.identity, MovementParams.GroundCheckDistance, MovementParams.GroundLayer);
         _isGrounded = groundDetected && _rb.linearVelocity.y <= 0f; // Ensure the character is moving downwards or stationary to be considered grounded
     }
 
     void CheckCeiling()
     {
-        _ceilingFree = !Physics.SphereCast(transform.position, movementParams.CeilingCheckRadius, Vector3.up, out RaycastHit hit, movementParams.CeilingCheckDistance);
+        _ceilingFree = !Physics.SphereCast(transform.position, MovementParams.CeilingCheckRadius, Vector3.up, out RaycastHit hit, MovementParams.CeilingCheckDistance);
     }
     #endregion Movement Checks
 
     #region Movement Handlers
-    public void Jump()
+    public void HandleRotation()
     {
 
+    }
+
+    public void HandleMovement(Vector3 direction, float speed)
+    {
+        _rb.linearVelocity = transform.rotation * direction * speed;
+    }
+
+    public void Jump(Vector3 jumpForce)
+    {
+        _rb.AddForce(jumpForce, ForceMode.Impulse);
     }
     #endregion Movement Handlers
 
