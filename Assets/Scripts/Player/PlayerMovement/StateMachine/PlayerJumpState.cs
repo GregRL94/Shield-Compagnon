@@ -2,18 +2,19 @@ using UnityEngine;
 
 public class PlayerJumpState : PlayerMovementBaseState
 {
+    bool _hasJumped;
+    // public PlayerJumpState(PlayerMovementController controller) : base(controller) { }
+
     public override void EnterState(PlayerMovementStateMachine stateMachine)
     {
-        var controller = stateMachine.Controller;
-        controller.IsJumping = true;
-        controller.Jump(Vector3.zero); // To modify with actual values
+        _controller = stateMachine.Controller;
+        _controller.IsJumping = true;
+        _controller.HandleJump(Vector3.zero); // To modify with actual values
     }
 
     public override void UpdateState(PlayerMovementStateMachine stateMachine)
     {
-        var controller = stateMachine.Controller;
-
-        if (!controller.IsJumping)
+        if (!_controller.IsJumping)
         {
             stateMachine.ChangeState(stateMachine.IdleState);
         }
@@ -21,12 +22,15 @@ public class PlayerJumpState : PlayerMovementBaseState
 
     public override void FixedUpdateState(PlayerMovementStateMachine stateMachine)
     {
-
+        if (!_hasJumped)
+        {
+            _controller.HandleJump(_controller.transform.up * _controller.JumpParams.JumpForce);
+            _hasJumped = true;
+        }
     }
 
     public override void ExitState(PlayerMovementStateMachine stateMachine)
     {
-        var controller = stateMachine.Controller;
-        controller.IsJumping = false;
+        _controller.IsJumping = false;
     }
 }

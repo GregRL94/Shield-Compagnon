@@ -4,12 +4,12 @@ using UnityEngine;
 [System.Serializable]
 public class MovementParameters
 {
-    [field: SerializeField, Tooltip("The speed at which the character moves.")] public float MoveSpeed { get; private set; } = 10f;
-    [field: SerializeField, Tooltip("The speed at which the character rotates.")] public float RotationSpeed { get; private set; } = 5f;
+    [field: SerializeField, Tooltip("The speed at which the character moves.")] public float BaseMoveSpeed { get; private set; } = 10f;
+    [field: SerializeField, Tooltip("The speed at which the character rotates.")] public float BaseRotationSpeed { get; private set; } = 5f;
     [field: SerializeField, Tooltip("Whether the character can move in the air.")] public bool AirControl { get; private set; } = false;
 
     [field: SerializeField, Tooltip("What is considered ground for the character.")] public LayerMask GroundLayer { get; private set; }
-    [field: SerializeField, Tooltip("The radius of the sphere used for ground checking.")] public float GroundCheckRadius { get; private set; } = 0.5f;
+    [field: SerializeField, Tooltip("The radius of the sphere used for ground checking.")] public Vector3 GroundCheckBox { get; private set; } = new Vector3(0.5f, 0.5f, 0.5f);
     [field: SerializeField, Tooltip("The distance for the sphere cast used for ground checking.")] public float GroundCheckDistance { get; private set; } = 0.5f;
 
     [field: SerializeField, Tooltip("The radius of the sphere used for ceiling checking.")] public float CeilingCheckRadius { get; private set; } = 0.5f;
@@ -41,26 +41,27 @@ public class PlayerMovementController : MonoBehaviour
     [SerializeField] private float _camMaxXAngle = 85f;
     private float _camXAngle;
 
+    public PlayerInputHandler PlayerInputs { get; private set; }
     protected PlayerMovementStateMachine _movementStateMachine;
-    private PlayerInputHandler _playerInputHandler;
     private Rigidbody _rb;
 
     public bool IsMoving { get; set; }
     public bool IsCrouching { get; set; }
     public bool IsSprinting { get; set; }
     public bool IsJumping { get; set; }
+    public bool IsFalling { get; set; }
+    public bool IsGrounded { get; set; }
+    public bool IsCeilingFree { get; set; }
 
     public Vector2 MoveInput { get; private set; }
     public Vector2 LookInput { get; private set; }
-    private bool _isGrounded;
-    private bool _ceilingFree;
     #endregion Attributes
 
     #region Monobehaviour Flow
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _playerInputHandler = PlayerInputHandler.Instance;
+        PlayerInputs = PlayerInputHandler.Instance;
         if (!TryGetComponent<Rigidbody>(out _rb))
         {
             Debug.LogError("Rigidbody component not found on the player.");
@@ -74,8 +75,8 @@ public class PlayerMovementController : MonoBehaviour
     {
         CheckIfGrounded();
         CheckCeiling();
-        MoveInput = _playerInputHandler.GetPlayerMovement();
-        LookInput = _playerInputHandler.GetPLayerLook();
+        MoveInput = PlayerInputs.GetPlayerMovement();
+        LookInput = PlayerInputs.GetPlayerLook();
         _movementStateMachine.UpdateStateMachine();
     }
 
@@ -88,28 +89,31 @@ public class PlayerMovementController : MonoBehaviour
     #region Movement Checks
     void CheckIfGrounded()
     {
-        bool groundDetected = Physics.BoxCast(transform.position, new Vector3(0.5f, MovementParams.GroundCheckRadius, 0.5f), Vector3.down, Quaternion.identity, MovementParams.GroundCheckDistance, MovementParams.GroundLayer);
-        _isGrounded = groundDetected && _rb.linearVelocity.y <= 0f; // Ensure the character is moving downwards or stationary to be considered grounded
+        bool groundDetected = Physics.BoxCast(transform.position, MovementParams.GroundCheckBox, Vector3.down, Quaternion.identity, MovementParams.GroundCheckDistance, MovementParams.GroundLayer);
+        IsGrounded = groundDetected && _rb.linearVelocity.y <= 0f; // Ensure the character is moving downwards or stationary to be considered grounded
     }
 
     void CheckCeiling()
     {
-        _ceilingFree = !Physics.SphereCast(transform.position, MovementParams.CeilingCheckRadius, Vector3.up, out RaycastHit hit, MovementParams.CeilingCheckDistance);
+        IsCeilingFree = !Physics.SphereCast(transform.position, MovementParams.CeilingCheckRadius, Vector3.up, out RaycastHit hit, MovementParams.CeilingCheckDistance);
     }
     #endregion Movement Checks
 
     #region Movement Handlers
-    public void HandleRotation()
+    public void HandleRotation(float rotationSpeed)
     {
-
+        // transform.Rotate(0f, LookInput.x * rotationSpeed * Time.fixedDeltaTime, 0f);
+        _rb.angularVelocity = new Vector3(0f, LookInput.x * rotationSpeed * Time.fixedDeltaTime, 0f);
+        _camXAngle = Mathf.Clamp(_camXAngle - LookInput.y * rotationSpeed * Time.fixedDeltaTime, -_camMaxXAngle, _camMaxXAngle);
+        FPCam.transform.localEulerAngles = new Vector3(_camXAngle, 0f, 0f);
     }
 
-    public void HandleMovement(Vector3 direction, float speed)
+    public void HandleMovement(float speed)
     {
-        _rb.linearVelocity = transform.rotation * direction * speed;
+        _rb.linearVelocity = (transform.rotation * new Vector3(MoveInput.x, 0f, MoveInput.y)).normalized * speed;
     }
 
-    public void Jump(Vector3 jumpForce)
+    public void HandleJump(Vector3 jumpForce)
     {
         _rb.AddForce(jumpForce, ForceMode.Impulse);
     }

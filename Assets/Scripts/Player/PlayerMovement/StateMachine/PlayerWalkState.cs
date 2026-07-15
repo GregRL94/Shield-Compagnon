@@ -2,9 +2,13 @@ using UnityEngine;
 
 public class PlayerWalkState : PlayerMovementBaseState
 {
+    float _moveSpeed;
+
     public override void EnterState(PlayerMovementStateMachine stateMachine)
     {
-        // Debug.Log("Entering Walk State");
+        _controller = stateMachine.Controller;
+        _moveSpeed = _controller.MovementParams.BaseMoveSpeed;
+        Debug.Log("Entered Walk State");
     }
 
     public override void UpdateState(PlayerMovementStateMachine stateMachine)
@@ -12,28 +16,33 @@ public class PlayerWalkState : PlayerMovementBaseState
         if (stateMachine.Controller.MoveInput.magnitude == 0)
         {
             stateMachine.ChangeState(stateMachine.IdleState);
+            return;
         }
-        else if (stateMachine.Controller.IsSprinting)
+        if (stateMachine.Controller.IsSprinting)
         {
             stateMachine.ChangeState(stateMachine.RunState);
+            return;
         }
-        else if (stateMachine.Controller.IsCrouching)
+        if (stateMachine.Controller.IsCrouching)
         {
             stateMachine.ChangeState(stateMachine.CrouchState);
+            return;
         }
-        else if (stateMachine.Controller.IsJumping)
+        if (stateMachine.Controller.IsJumping)
         {
-            stateMachine.ChangeState(stateMachine.JumpState);
+            stateMachine.ChangeState(stateMachine.JumpState); // Currently broken, will fix later
+            return;
         }
     }
 
     public override void FixedUpdateState(PlayerMovementStateMachine stateMachine)
     {
-        
+        _controller.HandleRotation(_controller.MovementParams.BaseRotationSpeed);
+        _controller.HandleMovement(_moveSpeed);
     }
 
     public override void ExitState(PlayerMovementStateMachine stateMachine)
     {
-        
+        Debug.Log("Exited Walk State");
     }
 }

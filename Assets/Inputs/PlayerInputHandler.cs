@@ -62,7 +62,7 @@ public class PlayerInputHandler : MonoBehaviour
         return _inputActions.Player.Move.ReadValue<Vector2>();
     }
 
-    public Vector2 GetPLayerLook()
+    public Vector2 GetPlayerLook()
     {
         return _inputActions.Player.Look.ReadValue<Vector2>();
     }

@@ -130,7 +130,7 @@ public class CharacterMovement : MonoBehaviour
     #region Movement Handlers
     void HandleRotation()
     {
-        Vector2 lookDir = PlayerInputHandler.Instance.GetPLayerLook();
+        Vector2 lookDir = PlayerInputHandler.Instance.GetPlayerLook();
         transform.Rotate(0f, lookDir.x * movementSetup.RotationSpeed * Time.deltaTime, 0f);
         _camXAngle = Mathf.Clamp(_camXAngle - lookDir.y * movementSetup.RotationSpeed * Time.deltaTime, -_camMaxXAngle, _camMaxXAngle);
         TPCam.transform.localEulerAngles = new Vector3(_camXAngle, 0f, 0f);
