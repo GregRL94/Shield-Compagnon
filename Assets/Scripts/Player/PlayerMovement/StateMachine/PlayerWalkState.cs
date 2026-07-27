@@ -6,39 +6,46 @@ public class PlayerWalkState : PlayerMovementBaseState
 
     public override void EnterState(PlayerMovementStateMachine stateMachine)
     {
-        _controller = stateMachine.Controller;
-        _moveSpeed = _controller.MovementParams.BaseMoveSpeed;
+        var controller = stateMachine.Controller;
+        _moveSpeed = controller.MovementParams.BaseMoveSpeed;
+        controller.IsMoving = true;
         Debug.Log("Entered Walk State");
     }
 
     public override void UpdateState(PlayerMovementStateMachine stateMachine)
     {
-        if (stateMachine.Controller.MoveInput.magnitude == 0)
+        var controller = stateMachine.Controller;
+
+        if (!controller.IsGrounded)
         {
-            stateMachine.ChangeState(stateMachine.IdleState);
+            stateMachine.ChangeState(stateMachine.FallState);
             return;
         }
-        if (stateMachine.Controller.IsSprinting)
+        
+        if (controller.PlayerInputs.SprintPressed())
         {
             stateMachine.ChangeState(stateMachine.RunState);
             return;
         }
-        if (stateMachine.Controller.IsCrouching)
+
+        if (controller.MoveInput.magnitude <= 0.1f)
         {
-            stateMachine.ChangeState(stateMachine.CrouchState);
+            stateMachine.ChangeState(stateMachine.IdleState);
             return;
         }
-        if (stateMachine.Controller.IsJumping)
+
+        if (controller.PlayerInputs.CrouchPressed())
         {
-            stateMachine.ChangeState(stateMachine.JumpState); // Currently broken, will fix later
+            stateMachine.ChangeState(stateMachine.CrouchState);
             return;
         }
     }
 
     public override void FixedUpdateState(PlayerMovementStateMachine stateMachine)
     {
-        _controller.HandleRotation(_controller.MovementParams.BaseRotationSpeed);
-        _controller.HandleMovement(_moveSpeed);
+        var controller = stateMachine.Controller;
+        controller.HandleRotation(controller.MovementParams.BaseRotationSpeed);
+        controller.HandleMovement(_moveSpeed);
     }
 
     public override void ExitState(PlayerMovementStateMachine stateMachine)

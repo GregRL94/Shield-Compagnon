@@ -2,42 +2,52 @@ using UnityEngine;
 
 public class PlayerCrouchState : PlayerMovementBaseState
 {
+    float _moveSpeed;
+
     public override void EnterState(PlayerMovementStateMachine stateMachine)
     {
+        var controller = stateMachine.Controller;
 
+        _moveSpeed = controller.MovementParams.BaseMoveSpeed * controller.MovementParams.CrouchSpeedMultiplier;
+        controller.IsCrouching = true;
     }
 
     public override void UpdateState(PlayerMovementStateMachine stateMachine)
     {
         var controller = stateMachine.Controller;
 
-        if (!controller.IsCrouching)
+        if (!controller.IsGrounded)
         {
-            if (controller.MoveInput.magnitude == 0)
+            stateMachine.ChangeState(stateMachine.FallState);
+            return;
+        }
+
+        if (!controller.PlayerInputs.CrouchPressed() && controller.IsCeilingFree)
+        {
+            if (controller.MoveInput.magnitude <= 0.1f)
             {
                 stateMachine.ChangeState(stateMachine.IdleState);
+                return;
             }
-            else
+            if (controller.PlayerInputs.SprintPressed())
             {
-                if (controller.IsSprinting)
-                {
-                    stateMachine.ChangeState(stateMachine.RunState);
-                }
-                else
-                {
-                    stateMachine.ChangeState(stateMachine.WalkState);
-                }
+                stateMachine.ChangeState(stateMachine.RunState);
+                return;
             }
+            stateMachine.ChangeState(stateMachine.WalkState);
         }
     }
 
     public override void FixedUpdateState(PlayerMovementStateMachine stateMachine)
     {
+        var controller = stateMachine.Controller;
 
+        stateMachine.Controller.HandleRotation(controller.MovementParams.BaseRotationSpeed);
+        stateMachine.Controller.HandleMovement(_moveSpeed);
     }
 
     public override void ExitState(PlayerMovementStateMachine stateMachine)
     {
-
+        stateMachine.Controller.IsCrouching = false;
     }
 }

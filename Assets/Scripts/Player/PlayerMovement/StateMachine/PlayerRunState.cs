@@ -31,9 +31,9 @@ public class PlayerRunState : PlayerMovementBaseState
             return;
         }
 
-        if (!controller.IsSprinting)
+        if (!controller.PlayerInputs.SprintPressed())
         {
-            if (controller.IsCrouching)
+            if (controller.PlayerInputs.CrouchPressed())
             {
                 stateMachine.ChangeState(stateMachine.CrouchState);
                 return;

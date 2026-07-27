@@ -24,16 +24,13 @@ public class PlayerIdleState : PlayerMovementBaseState
             return;
         }
 
-        if (controller.MoveInput.magnitude > 0.1f)
-        {
-            stateMachine.ChangeState(stateMachine.WalkState);
-            return;
-        }
-
         if (controller.PlayerInputs.SprintPressed() && controller.MoveInput.magnitude > 0.1f)
         {
             stateMachine.ChangeState(stateMachine.RunState);
-            return;
+        }
+        else if (controller.MoveInput.magnitude > 0.1f)
+        {
+            stateMachine.ChangeState(stateMachine.WalkState);
         }
 
         if (controller.PlayerInputs.JumpPressed())
